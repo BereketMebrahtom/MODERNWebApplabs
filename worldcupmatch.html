@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>
+        world cup display
+    </title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.2.1/rxjs.umd.min.js"></script>
+</head>
+
+<body>
+
+    <!-- form for the input -->
+    <form name="teamform" method="GET">
+        <input type="text" name="team" placeholder="Team name" id="teamName">
+        <input type="submit" value="Search">
+
+    </form>
+    <div id="appendingId"></div>
+
+    <table border="1" id="tabbleId">
+        <th>
+            Group A
+        </th>
+    </table>
+
+
+
+    <script>
+        const { observable, of, from,fromEvent } = rxjs;
+        const { map, filter,  debounceTime } = rxjs.operators;
+
+        const url = 'https://raw.githubusercontent.com/lsv/fifa-worldcup-2018/master/data.json';
+        const result = fetch(url);
+        const typedTeamName = fromEvent($('#teamName'), 'keydown');
+
+        result.then(data => data.json())
+            .then(data => {
+                console.log(data.teams)
+                const teamList = data.teams;
+                const groups = data.groups;
+
+                from(teamList)
+                    .pipe(map(team => team))
+                    .subscribe(team => {
+                        $('#tabbleId')
+                            .append(
+                                $('<tr>')
+                                    .append(
+                                        $('<td>')
+                                            .append(
+                                                $('<div>')
+                                                    .append(
+                                                        $('<img>', {
+                                                            'src': team.flag,
+                                                            'height': '15px',
+                                                            'width': '15px'
+                                                        })
+                                                    )
+                                                    .append(
+                                                        $('<span>', {
+                                                            'text': " " + team.name
+                                                        })))))
+                    })
+            })
+
+        typedTeamName
+              .pipe(
+                debounceTime(500),
+                map(element1 => element1.target.value))
+            .subscribe(element1 => {
+
+
+
+                element1 = element1.toLowerCase();
+                $("#tabbleId tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(element1) === 1)
+                });
+
+            }
+            )
+    </script>
+
+
+</body>
+
+</html>
